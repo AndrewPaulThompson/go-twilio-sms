@@ -63,12 +63,19 @@ func (c *Client) createMessage(to string, body string) string {
     return data.Encode()
 }
 
-// Sends an encoded string message to the Twilio SMS api
-func (c *Client) send(message string) {
-    req, _ := http.NewRequest("POST", c.getEndpoint(ApiMessages), strings.NewReader(message))
+// Creates a http.Request for the SMS request
+func (c *Client) createRequest(message string) *http.Request {
+    req, _ := http.NewRequest("POST", c.getEndpoint(c.accountSid, ApiMessages), strings.NewReader(message))
     req.SetBasicAuth(c.accountSid, c.authToken)
     req.Header.Add("Accept", "application/json")
     req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+    return req
+}
+
+// Sends an encoded string message to the Twilio SMS api
+func (c *Client) send(message string) {
+    req := c.createRequest(message)
 
     resp, _ := c.client.Do(req)
 
@@ -86,8 +93,8 @@ func (c *Client) send(message string) {
 
 // Returns the full Twilio endpoint as a string
 // from the given endpoint slug
-func (c *Client) getEndpoint(endpoint string) string {
-    return ApiBase + c.accountSid + endpoint
+func (c *Client) getEndpoint(sid string, endpoint string) string {
+    return ApiBase + sid + endpoint
 }
 
 // Decodes a json body, returns a map of data
